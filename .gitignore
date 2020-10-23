@@ -1,0 +1,11 @@
+**/__pycache__
+/.vscode/*
+/engines/*
+/engineCrawler.egg-info/*
+/build/*
+/dist/*
+/temp/*
+geckodriver.log
+setup.cfg
+ToDo.md
+.pypirc
