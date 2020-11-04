@@ -7,7 +7,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    version='1.1',
+    version='1.2',
     description='Scraping images from the web.',
     author='Erich Garcia',
     author_email='erich.info.work@gmail.com',
@@ -21,6 +21,7 @@ setup(
         'imagehash',
         'PySocks!=1.5.7,>=1.5.6'
     ],
+    url='https://github.com/ehoraizon/engineCrawler',
     scripts=['engineCrawler' + sep + 'imageCrawler.py'],
     keywords=[
         'crawler', 'scraping', 'search engines',

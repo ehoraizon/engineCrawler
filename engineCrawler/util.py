@@ -28,75 +28,86 @@ HASHING_METHODS = {
 }
 
 class DuplInFolder:
-    files = []
-    checked = []
-    current = None
-    current_dt = None
-    rm_paths = []
-
-    def __init__(self, path, hash_method="AHASHING", similarity=50):
-        self.path = path
-        self._getFiles()
+    def __init__(self, hash_method="AHASHING", similarity=50):
         self.hashing = HASHING_METHODS[hash_method]
         self.similarity = similarity
+    
+    def setPath(self, path):
+        self.path = path
 
-    def _getFiles(self):
-        self.files = [
-            os.path.join(self.path, x) 
+    def getFiles(self):
+        files = [
+            os.path.join(self.path, x)
             for x in os.listdir(self.path) 
             if os.path.isfile(self.path + os.sep + x) and \
-               os.path.join(self.path, x) not in self.checked and \
-               '.json' not in x
+                '.json' not in x
         ]
-        if len(self.files):
-            self.current = self.files[0]
-            self.files = self.files[1:]
-            self.checked.append(self.current)
+        _files = list(range(len(files)))
+        hashings = []
+        rm_ind = set()
 
-    def _load(self, file):
+        for sli in slices(_files):
+            ths = [
+                threading.Thread(self._load(files[i], rm_ind, hashings, i))
+                for i in sli
+            ]
+            [x.start() for x in ths]
+            [x.join() for x in ths]
+        
+        self.erase([files[i] for i in rm_ind])
+
+        files = [x for i,x in enumerate(files) if i not in rm_ind]
+
+        return files, hashings
+
+    def _load(self, file, rm_files, hashings, n):
         loaded = None
         try:
-            loaded = self.hashing(Image.open(file)) #no need to convert to array
-        except UnidentifiedImageError: #eliminate the image
-            self.rm_paths.append(file)
-        finally:
-            return loaded
+            loaded = self.hashing(Image.open(file))
+        except UnidentifiedImageError:
+            print('No image format : ', file)
+            rm_files.add(n)
+        except:
+            rm_files.add(n)
+        else:
+            hashings.append(loaded)
 
-    def _rm(self):
-        _cach = os.listdir(self.path)
-        [os.remove(x) for x in set(self.rm_paths) if x.split('\\')[-1] in _cach]
-        self.rm_paths = []
-
-    def cmp(self, file): #use hash methods
-        if type(file) != type(None):
-            if self.current_dt - file > self.similarity or \
-               self.current_dt == file:
-                return True
-        return False
-
-    def _thread(self, file):
-        def _work(file):
-            fl = self._load(file)
-            if file:
-                if self.cmp(fl):
-                    self.rm_paths.append(file)
-
-        return threading.Thread(target=_work, args=(file,))
-
-    def dupl(self):
-        self.current_dt = self._load(self.current)
-
-        if type(self.current_dt) != type(None):
-            fls = slices(self.files)
-
-            for _fls in fls:
-                threads = [self._thread(x) for x in _fls]
-                [x.start() for x in threads]
-                [x.join() for x in threads]
-
-        self._rm()
+    def erase(self, rm_files):
+        def rm(file_path):
+            os.remove(file_path)
+        rm_files = slices(rm_files)
+        for sli in rm_files:
+            ths = [
+                threading.Thread(target=rm, args=(x,)) 
+                for x in sli
+            ]
+            [x.start() for x in ths] 
+            [x.join() for x in ths] 
 
     def check(self):
-        while len(self.files) > 0:
-            self.dupl()
-            self._getFiles()
+        file_paths, hashing = self.getFiles()
+        rm = set()
+
+        def cmp(file_path, img, vs_img):
+            if img - vs_img > self.similarity or img == vs_img:
+                rm.add(file_path)
+        
+        file_paths_ind = list(range(len(file_paths)))
+
+        for i,x in enumerate(file_paths):
+            for sli in slices(file_paths_ind[i+1:]):
+                ths = [
+                    threading.Thread(
+                        target=cmp, 
+                        args=(
+                            x, 
+                            hashing[i],
+                            hashing[y]
+                        )
+                    )
+                    for y in sli
+                ]
+                [x.start() for x in ths]
+                [x.join() for x in ths]
+
+        self.erase(list(rm))

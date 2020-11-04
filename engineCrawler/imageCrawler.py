@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import threading
 import os
 import json
@@ -219,8 +221,9 @@ class CrawlerEngine:
                 self._work(key)
             self.cont = 0
             self.finish = False
-        if len(self.aut_save):
-            self._save_keys()
+            if len(self.aut_save):
+                self._save_keys()
+                self.aut_save = []
 
     def close(self):
         self.driver.delete_all_cookies()
@@ -243,7 +246,7 @@ if __name__ == "__main__":
                     help="Type of hash method to use.\n {}".format(' '.join(
                         HASHING_METHODS.keys()
                     )))
-    parser.add_argument('-am', '--amount', type=int, required=False, default=6000,
+    parser.add_argument('-am', '--amount', type=int, required=False, default=4000,
                     help="Limit the amount of images to crawl")
     parser.add_argument('-sl', '--sleep_time', type=int, required=False, default=2,
                     help="Sleep time for the crawler.")
@@ -258,8 +261,9 @@ if __name__ == "__main__":
 
     crr_dir = os.getcwd()
     paths = [crr_dir + os.sep + 'engines' + os.sep + x for x in args.keys]
+    dupl = DuplInFolder(args.hashing, args.similarity)
     for folder in paths:
-        dupl = DuplInFolder(folder, args.hashing, args.similarity)
+        dupl.setPath(folder)
         dupl.check()
 
     print('END')

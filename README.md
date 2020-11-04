@@ -12,7 +12,7 @@ Simple python module for scraping images from the web, created for AI developmen
 ## Basic Usage
 
 ```
->> python imageCrawler.py -k cats dogs
+>> imageCrawler.py -k cats dogs
 >> Select by number the queries to ignore:
 >> ( 0 ) cats
 >> ( 1 ) cats with hats
