@@ -23,7 +23,7 @@ Simple python module for scraping images from the web, created for AI developmen
 >> ( 0 ) dogs
 >> ( 1 ) dogs with hats
 >> 1
->> Start with cats download 4000 at engines\dogs
+>> Start with dogs download 4000 at engines\dogs
 >> 100%
 >> Searching duplicated...
 >> END
