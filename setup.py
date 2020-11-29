@@ -19,7 +19,8 @@ setup(
         'selenium',
         'requests',
         'imagehash',
-        'PySocks!=1.5.7,>=1.5.6'
+        'PySocks!=1.5.7,>=1.5.6',
+        'numpy'
     ],
     url='https://github.com/ehoraizon/engineCrawler',
     scripts=['engineCrawler' + sep + 'imageCrawler.py'],
