@@ -7,7 +7,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    version='1.2',
+    version='1.3',
     description='Scraping images from the web.',
     author='Erich Garcia',
     author_email='erich.info.work@gmail.com',
