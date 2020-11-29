@@ -1,6 +1,7 @@
 import os
 import threading
 import imagehash
+import numpy as np
 from PIL import Image, UnidentifiedImageError
 
 def slices(lista, steps=5):
@@ -56,14 +57,16 @@ class DuplInFolder:
         
         self.erase([files[i] for i in rm_ind])
 
-        files = [x for i,x in enumerate(files) if i not in rm_ind]
+        files = np.array([x for i,x in enumerate(files) if i not in rm_ind])
 
-        return files, hashings
+        self.similarity = hashings[0].shape[0]*hashings[0].shape[1]*self.similarity/100
+
+        return files, np.array(hashings)
 
     def _load(self, file, rm_files, hashings, n):
         loaded = None
         try:
-            loaded = self.hashing(Image.open(file))
+            loaded = self.hashing(Image.open(file)).hash
         except UnidentifiedImageError:
             print('No image format : ', file)
             rm_files.add(n)
@@ -86,28 +89,24 @@ class DuplInFolder:
 
     def check(self):
         file_paths, hashing = self.getFiles()
-        rm = set()
 
-        def cmp(file_path, img, vs_img):
-            if img - vs_img > self.similarity or img == vs_img:
-                rm.add(file_path)
-        
-        file_paths_ind = list(range(len(file_paths)))
+        base_dt = file_paths[0].split(os.sep)[-1].split('-')[0]+'-'
+        ind = sum([1 for x in file_paths if base_dt in x])
 
-        for i,x in enumerate(file_paths):
-            for sli in slices(file_paths_ind[i+1:]):
-                ths = [
-                    threading.Thread(
-                        target=cmp, 
-                        args=(
-                            x, 
-                            hashing[i],
-                            hashing[y]
-                        )
-                    )
-                    for y in sli
-                ]
-                [x.start() for x in ths]
-                [x.join() for x in ths]
+        res = np.unique(
+                 np.where(
+                    np.array(
+                        [
+                            np.sum(np.sum(x == hashing, axis=1),axis=1)
+                            for x in hashing
+                        ]
+                    ) > self.similarity
+                )[1],
+                return_counts=True
+            )
 
-        self.erase(list(rm))
+        self.erase(
+            list(
+                file_paths[res[0][ind:][np.where(res[1][ind:] > 1)]]
+            )
+        )

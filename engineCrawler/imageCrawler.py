@@ -45,7 +45,7 @@ class CrawlerEngine:
     last_src = None
     last_pst = None
     aut = True
-    finish = False ##check this
+    finish = False
     keys_file = 'keys.json'
     aut_save = []
 
@@ -168,8 +168,9 @@ class CrawlerEngine:
 
         while self.cont < self.n:
 
+            print(' '*6, end='\r')
             print('{}%'.format(
-                self.cont*100/self.n
+                round(self.cont*100/self.n, 2)
             ), end='\r')
 
             urls = self._get_urls()
@@ -240,15 +241,15 @@ if __name__ == "__main__":
                     help="A word to add after a key for autocomplete.") 
     parser.add_argument('-e', '--engine', type=str, required=False, default='duckduckgo',
                     help="The name of the website to crawl of(google, duckduckgo).") #change
-    parser.add_argument('-s', '--similarity', type=int, required=False, default=65,
-                    help="The difference between two images hashes. If the amount provided is exceeded the second image will be deleted.")
+    parser.add_argument('-s', '--similarity', type=int, required=False, default=90,
+                    help="The percentage of the difference between two images hashes. If it exceeds the percentage the second image will be deleted.")
     parser.add_argument('-hs', '--hashing', type=str, required=False, default=list(HASHING_METHODS.keys())[0],
                     help="Type of hash method to use.\n {}".format(' '.join(
                         HASHING_METHODS.keys()
                     )))
     parser.add_argument('-am', '--amount', type=int, required=False, default=4000,
                     help="Limit the amount of images to crawl")
-    parser.add_argument('-sl', '--sleep_time', type=int, required=False, default=2,
+    parser.add_argument('-sl', '--sleep_time', type=int, required=False, default=5,
                     help="Sleep time for the crawler.")
 
     args = parser.parse_args()
